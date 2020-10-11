@@ -1,0 +1,53 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h1>Posts of followers</h1>
+    {% for post in posts %}
+    <div class="post">
+        {% for name in names %}
+        {% ifequal post.User_id name.id  %}
+        <a href="{% url 'profile' id=name.id %}" class="username">{{ name.username }}</a>
+        {% endifequal %}
+        {% endfor %}
+        <label class="time">{{ post.timestamp }}</label>
+        <label class="content">{{ post.content }}</label>
+        likes:
+        <label class="likes">{{ post.likes }}</label>
+        {% if user.is_authenticated %}
+        {% for like in likes %}
+        {% ifequal like.post_id post.id %}
+        <button class="like">Unlike</button>
+        {% endifequal %}
+        {% endfor %}
+        <button class="like">Like</button>
+        {% endif %}
+        <form id="idm">
+        <input type="hidden"  class="submitmv" value="{{post.id}}">
+        </form>
+    </div>
+    {% empty %}
+    No Followers at the moment
+    {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if posts.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ posts.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
+            </span>
+    
+            {% if posts.has_next %}
+                <a href="?page={{ posts.next_page_number }}">next</a>
+                <a href="?page={{ posts.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+
+
+{% endblock %}

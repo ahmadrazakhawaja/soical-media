@@ -1,0 +1,55 @@
+#New{
+    border: 2px solid beige;
+}
+
+#submitc{
+    display: block;
+}
+
+.post{
+    border: 2px solid black;
+    margin-top: 10px;
+    padding: 10px;
+    font-family: sans-serif;
+}
+
+.post .username{
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.post .time{
+display: block;
+font-size: 10px;
+color: gray;
+}
+
+.post .content{
+    display: block;
+    font-size: 15px;
+}
+
+.post .like, .post .edit{
+    display: block;
+    margin-bottom: 10px;
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: .375rem .75rem;
+    color: white;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: .25rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.post .like:hover, .post .edit:hover{
+    color: white;
+    background-color: #0069d9;
+    border-color: #0069d9;
+}
+
+#hkj{
+    font-size: 20px;
+    margin: 5px;
+}

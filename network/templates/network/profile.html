@@ -1,0 +1,93 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h1>{{ name }} Profile</h1>
+    {% if user.is_authenticated %}
+    {% ifnotequal id user.id %}
+    {% if fkx %}
+    <button id="fkx" class="">Unfollow</button>
+    {% else %}
+    <button id="fkx" class="">Follow</button>
+    {% endif %}
+    {% endifnotequal %}
+    {% endif %}
+    <div id="followers">
+        followers: 
+        <div id="follo">{{ followers }}</div>
+    </div>
+    <div id="following">
+        following: 
+        <div id="follok">{{ following }}</div>
+    </div>
+    <form action="">
+        <input type="hidden" id='ido' value={{id}}>
+    </form>
+    <label id="hkj">Your Posts</label>
+    {% for post in posts %}
+    <div class="post">
+        <div class="nk">
+        {% for name in names %}
+        {% ifequal post.User_id name.id  %}
+        <a class="username">{{ name.username }}</a>
+        {% endifequal %}
+        {% endfor %}
+        <label class="time">{{ post.timestamp }}</label>
+        <label class="content">{{ post.content }}</label>
+        likes:
+        <label class="likes">{{ post.likes }}</label>
+        {% if user.is_authenticated %}
+        {% for like in likes %}
+        {% ifequal like.post_id post.id %}
+        <button class="like">Unlike</button>
+        {% endifequal %}
+        {% endfor %}
+        <button class="like">Like</button>
+        {% endif %}
+        <form id="idm">
+        <input type="hidden"  class="submitmv" value="{{post.id}}">
+        </form>
+        {% if user.is_authenticated %}
+        {% ifequal post.User_id user.id %}
+        <button class="edit">Edit</button>
+    </div>
+        <div class="Newx">
+            <form class="newpost">
+                {% csrf_token %}
+                <textarea class="tx" cols="100" rows="5" placeholder="Edit your Post" name="content"></textarea>
+                <input type="submit"  class="submitxc" value="Save">
+                <input type="submit"  class="submitv" value="Cancel">
+                <input type="hidden"  class="submitxv" value="{{post.id}}">
+            </form>
+        </div>
+        {% else %}
+        </div>
+        {% endifequal %}
+        {% else %}
+    </div>
+    {% endif %}
+    </div>
+    {% empty %}
+    No Posts at the moment
+    {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if posts.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ posts.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
+            </span>
+    
+            {% if posts.has_next %}
+                <a href="?page={{ posts.next_page_number }}">next</a>
+                <a href="?page={{ posts.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+
+{% endblock %}
