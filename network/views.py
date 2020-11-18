@@ -12,6 +12,7 @@ from .models import User, posts, likes, followers
 
 
 def index(request):
+    form = ""
     sk = posts.objects.all().order_by('-id')
     lk=set()
     for dk in sk:
@@ -23,6 +24,7 @@ def index(request):
     if request.user.is_authenticated:
         lik = likes.objects.filter(User_id=request.user.id)
     if request.user.is_authenticated:
+        #form = PostForm()
         if request.method == 'POST':
             if request.POST.get('content') == "":
                 return render(request, "network/index.html",{
@@ -32,14 +34,15 @@ def index(request):
     "Error":"Please add something to post."
 })
             else:
-                mlk = posts(User_id=request.user.id,content=request.POST.get("content"),likes=0)
-                mlk.save()
+                #formx = PostForm(request.POST,request.FILES)
+                posts(User_id=request.user.id,content=request.POST.get('content'),post_image=request.FILES.get('post_image'),likes=0).save()
                 return HttpResponseRedirect('/')
     
     return render(request, "network/index.html",{
         "posts":page_obj,
         "names":lk,
         "likes":lik,
+        "form":form
     })
 
 
@@ -83,7 +86,8 @@ def register(request):
 
         # Attempt to create new user
         try:
-            user = User.objects.create_user(username, email, password)
+            print(request.FILES.get('user_image'))
+            user = User(username=username, email=email, password=password,user_image=request.FILES.get('user_image'))
             user.save()
         except IntegrityError:
             return render(request, "network/register.html", {
@@ -96,34 +100,49 @@ def register(request):
 
 
 def profile(request,id):
-    data = User.objects.get(id=id)
-    fkx = True
-    if not followers.objects.filter(User_id=id,follower_id=request.user.id):
-        fkx = False
-    else:
+    if request.method=="GET":
+        data = User.objects.get(id=id)
         fkx = True
+        if not followers.objects.filter(User_id=id,follower_id=request.user.id):
+            fkx = False
+        else:
+            fkx = True
 
-    post = posts.objects.filter(User_id=id).order_by('-id')
-    paginator = Paginator(post, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number) 
-    following = followers.objects.filter(follower_id=id)
-    followingx = len(following)
-    follow = followers.objects.filter(User_id=id)
-    followx = len(follow)
-    lik=None
-    if request.user.is_authenticated:
-        lik = likes.objects.filter(User_id=request.user.id)
-    return render(request, "network/profile.html",{
-        "posts":page_obj,
-        "name": data.username,
-        "following": followingx,
-        "followers": followx,
-        "id": int(id),
-        "fkx":fkx,
-        "likes":lik
+        post = posts.objects.filter(User_id=id).order_by('-id')
+        paginator = Paginator(post, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number) 
+        following = followers.objects.filter(follower_id=id)
+        followingx = len(following)
+        follow = followers.objects.filter(User_id=id)
+        followx = len(follow)
+        lik=None
+        if request.user.is_authenticated:
+            lik = likes.objects.filter(User_id=request.user.id)
+        return render(request, "network/profile.html",{
+            "posts":page_obj,
+            "userx": data,
+            "name": data.username,
+            "following": followingx,
+            "followers": followx,
+            "image":data.user_image,
+            "id": int(id),
+            "fkx":fkx,
+            "likes":lik,
+        })
+    elif request.method=='POST':
+        data = User.objects.get(id=request.user.id)
+        url = reverse('profile', kwargs={'id': request.user.id})
+        if request.POST.get('content'):
+            data.user_description = request.POST.get('content')
+        else:
+             data.user_image = request.FILES.get('user_image2')
+            
+        data.save()
+        return HttpResponseRedirect(url)
+        
 
-    })
+
 @login_required
 def follow(request):
     if request.method=='POST':
@@ -194,11 +213,14 @@ def following(request):
 @login_required
 def edit(request):
     if request.method=='POST':
-        data = json.loads(request.body)
+        #data = json.loads(request.body)
         try:
-            nk = posts.objects.get(id=data.get('id'))
+            print(request.POST.get("post_id"))
+            nk = posts.objects.get(id=request.POST.get("post_id"))
             if request.user.id == nk.User_id:
-                nk.content = data.get('content')
+                nk.content = request.POST.get("content")
+                if(request.FILES.get('post_image2')):
+                    nk.post_image = request.FILES.get('post_image2')
                 nk.save()
                 return JsonResponse({
                         "message": "Post edited"
@@ -265,6 +287,47 @@ def likesx(request):
                         "message": "wrong request method"
                     }, status=400)
 
+
+@login_required
+def follower(request,id):
+    if request.method=='POST':
+        print(request.user.id+int(id))
+        if request.user.id==int(id):
+            sk = followers.objects.filter(follower_id=request.user.id).order_by('-id')
+            lk=[]
+            for dk in sk:
+                lk.append(User.objects.get(id=f"{dk.User_id}"))
+            paginator = Paginator(lk, 10) 
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            return render(request, "network/followers.html",{
+                        "posts":page_obj,
+                        "title": "Following"
+                    })
+
+    else:
+        return HttpResponseRedirect("/")
+
+
+@login_required
+def following2(request,id):
+    if request.method=='POST':
+        if request.user.id==int(id):
+            sk = followers.objects.filter(User_id=request.user.id).order_by('-id')
+            lk=[]
+            for dk in sk:
+                lk.append(User.objects.get(id=f"{dk.follower_id}"))
+            paginator = Paginator(lk, 10) 
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            return render(request, "network/followers.html",{
+                        "posts":page_obj,
+                        "title":"Followers"
+                    })
+
+    else:
+        return HttpResponseRedirect("/")
+    
         
 
     

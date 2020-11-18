@@ -20,6 +20,15 @@ function getCookie(name) {
 }
 
 
+function readURL(input,input2) {
+    console.log(input.get('post_image2'))
+    console.log(URL.createObjectURL(input.get('post_image2')))
+      var output = input2;
+      output.src = URL.createObjectURL(input.get('post_image2'));
+     
+  
+}
+
 
 
 
@@ -79,11 +88,30 @@ function getCookie(name) {
           
     }
   }
+  if(document.querySelector("#change_description")){
+  document.querySelector("#change_description").style.display='none'
+  
+  document.querySelector("#edit_description").onclick=function(){
+
+    document.querySelector("#change_description").style.display='block'
+
+    document.querySelector("#description").style.display='none'
+    document.querySelector("#edit_description").style.display='none'
+
+    document.querySelector(".cancel_description").onclick=function(){
+      document.querySelector("#description").style.display='block'
+      document.querySelector("#change_description").style.display='none'
+      document.querySelector("#edit_description").style.display='block'
+      return false
+    }
+    return false
+  }
+}
 
 
 document.querySelectorAll(".edit").forEach(exa =>{
   exa.onclick = function(){
-  const parent= event.target.parentNode
+  const parent= event.target.parentNode.parentNode
   parent.style.display='none'
   parent.nextElementSibling.style.display='block'
   document.querySelectorAll(".submitv").forEach(lkx => {
@@ -100,13 +128,13 @@ document.querySelectorAll(".edit").forEach(exa =>{
       const vt = event.target.parentNode
     const parent2= vt.parentNode
      lk = parent2.querySelector('.submitxv').value
+     var formdata = new FormData(parent2.querySelector('.newpost'))
+     formdata.append('post_id',lk)
      fetch('/edit', {
       method: 'POST',
-      body: JSON.stringify({
-          content: parent2.querySelector('.tx').value,
-          id: lk
-      }),
-      headers: { "X-CSRFToken": getCookie('csrftoken')}
+      body: formdata,
+      headers: { "X-CSRFToken": getCookie('csrftoken')},
+      enctype: 'multipart/form-data',
     })
     .then(response => {
       if(response.status===201){
@@ -123,6 +151,9 @@ document.querySelectorAll(".edit").forEach(exa =>{
       alert(result.message)
       alert(parent.querySelector('.content').innerHTML)
       parent.querySelector('.content').innerHTML= vt.querySelector('.tx').value
+      if(formdata.get('post_image2').size!=0){
+        readURL(formdata,parent.querySelector('#image'))
+      }
       }
       else{
         alert(result.message)
@@ -147,11 +178,12 @@ document.querySelectorAll('.newpost').forEach(bx => {
 })
 
 document.querySelectorAll('.like').forEach(kx => {
-  if( kx.nextElementSibling.innerHTML!=null &&  kx.nextElementSibling.innerHTML=='Like'){
+  console.log(kx.parentNode)
+  if( kx.nextElementSibling!=null &&  kx.nextElementSibling.innerHTML==='Like'){
     kx.nextElementSibling.remove()
   }
   kx.onclick = function(){
-  const bk= event.target.parentNode
+  const bk= event.target.parentNode.parentNode
   sk = bk.querySelector('.submitmv')
 
     fetch('/like', {
